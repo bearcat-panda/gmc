@@ -16,27 +16,27 @@ import (
 )
 
 //Get the current time in seconds
-func GetNowSecond() int64 {
+func Unix() int64 {
 	return time.Now().UTC().Unix()
 }
 
 //Get seconds based on time
-func GetSecondByTime(t time.Time) int64 {
+func TimeToUnix(t time.Time) int64 {
 	return t.UTC().Unix()
 }
 
 //Get the current time in milliseconds
-func GetNowMilliSecond() int64 {
+func MilliSeconds() int64 {
 	return time.Now().UTC().UnixNano() / 1e6
 }
 
 //Get the millisecond value based on time
-func GetMilliSecondByTime(t time.Time) int64 {
+func TimeToMilliSeconds(t time.Time) int64 {
 	return t.UTC().UnixNano() / 1e6
 }
 
 //Change integer type to time type
-func GetTimeByInt64(s int64) time.Time {
+func Int64ToTime(s int64) time.Time {
 	length := len(fmt.Sprintf("%d", s)) //Get the length
 	switch length {
 	case len(fmt.Sprintf("%d", time.Second)): //second 10
@@ -46,82 +46,64 @@ func GetTimeByInt64(s int64) time.Time {
 	case len(fmt.Sprintf("%d", time.Second*1e9)): //nanosecond 19
 		return time.Unix(0, s)
 	default: //default
-		panic("Length does not meet the requirements")
+		return time.Time{}
 	}
 	return time.Now() //currentTime
 }
 
-//Acquire the time according to the string
-//@param s timString "2006-01-02","2006/01/02 15:04:05","2006/01/02 03:04:05"
-//@param isH true-24 hour clock false-12 hour clock
-//No hours involved. The second field is ignored
-func GetTimeByString(s string, isH bool) time.Time {
-	value := strings.TrimSpace(s)
-	if len(value) == 0 {
-		panic("String format error")
-	}
+// StrToTime with Location, equivalent to time.ParseInLocation() timezone/offset
+// rules.  Using location arg, if timezone/offset info exists in the
+// datestring, it uses the given location rules for any zone interpretation.
+// That is, MST means one thing when using America/Denver and something else
+// in other locations.
+func StrToTime(s string) (time.Time, error) {
+	return parseAny(s)
+}
 
-	var layout string
-	switch isH {
-	case true: //24h
-		layout = "2006-01-02 15:04:05"
-	case false: //12h
-		layout = "2006-01-02 03:04:05"
-	}
+// MustStrToTime  parse a date, and zero time.Time{} returned if it can't be parsed.  Used for testing.
+// Not recommended for most use-cases.
+func MustStrToTime(s string) time.Time {
+	return mustParse(s)
+}
 
-	if len(value) == 10 && strings.Contains(value, "-") {
-		layout = "2006-01-02"
-	}
+// StrToTimeIn with Location, equivalent to time.ParseInLocation() timezone/offset
+// rules.  Using location arg, if timezone/offset info exists in the
+// datestring, it uses the given location rules for any zone interpretation.
+// That is, MST means one thing when using America/Denver and something else
+// in other locations.
+func StrToTimeIn(s string, loc *time.Location) (time.Time, error) {
+	return parseIn(s, loc)
+}
 
-	if len(value) == 10 && strings.Contains(value, "/") {
-		layout = "2006/01/02"
-	}
-
-	if len(value) == 19 && strings.Contains(value, "/") && isH {
-		layout = "2006/01/02 15:04:05"
-	}
-
-	if len(value) == 19 && strings.Contains(value, "/") && !isH {
-		layout = "2006/01/02 03:04:05"
-	}
-
-	if len(value) == 14 && isH {
-		layout = "20060102150405"
-	}
-
-	if len(value) == 14 && !isH {
-		layout = "20060102030405"
-	}
-
-	if len(value) == 8 {
-		layout = "20060102"
-	}
-
-	t, err := time.ParseInLocation(layout, value, time.Local)
+// MustStrToTime  parse a date, and zero time.Time{} returned if it can't be parsed.  Used for testing.
+// Not recommended for most use-cases.
+func MustStrToTimeIn(s string, loc *time.Location) (t time.Time) {
+	var err error
+	t, err = parseIn(s, loc)
 	if err != nil {
-		panic("String format error")
+		t = time.Time{}
+		return
 	}
-	return t
+	return
 }
 
 //Get the zero point of incoming time
-func GetZeroTime(t time.Time) time.Time {
+func ZeroTimeOf(t time.Time) time.Time {
 	zeroTime, err := time.ParseInLocation("2006-01-02", t.Format("2006-01-02"), time.Local)
 	if err != nil {
-		panic("Time conversion error")
+		return time.Time{}
 	}
-
 	return zeroTime
 }
 
 //Get the zero time of the day
-func GetNowZeroTime() time.Time {
+func ZeroTime() time.Time {
 	zeroTime, err := time.ParseInLocation(
 		"2006-01-02",
 		time.Now().Format("2006-01-02"),
 		time.Local)
 	if err != nil {
-		panic("Time conversion error")
+		return time.Time{}
 	}
 
 	return zeroTime
@@ -129,30 +111,30 @@ func GetNowZeroTime() time.Time {
 
 //Get the first day of the month where the time is passed in.
 // That is the zero point on the first day of a month
-func GetFirstDateOfMonth(t time.Time) time.Time {
+func MonthZeroTimeOf(t time.Time) time.Time {
 	t = t.AddDate(0, 0, -t.Day()+1)
-	return GetZeroTime(t)
+	return ZeroTimeOf(t)
 }
 
 //Get the last day of the month where the time is passed in
 //That is, 0 o'clock on the last day of a month
-func GetLastDateOfMonth(t time.Time) time.Time {
-	return GetFirstDateOfMonth(t).AddDate(0, 1, -1)
+func MonthLastTimeOf(t time.Time) time.Time {
+	return MonthZeroTimeOf(t).AddDate(0, 1, -1)
 }
 
 //Start of this year
-func GetFirstDateOfYear(t time.Time) time.Time {
+func YearZeroTimeOf(t time.Time) time.Time {
 	t = t.AddDate(0, -int(t.Month())+1, -t.Day()+1)
-	return GetZeroTime(t)
+	return ZeroTimeOf(t)
 }
 
 //End of this year
-func GetLastDateOfYear(t time.Time) time.Time {
-	return GetFirstDateOfYear(t).AddDate(1, 0, -1)
+func YearLastTimeOf(t time.Time) time.Time {
+	return YearZeroTimeOf(t).AddDate(1, 0, -1)
 }
 
 //Get the day of the week for the incoming time
-func GetWeek(t time.Time) int {
+func WeekdayOf(t time.Time) int {
 	week := int(t.Weekday())
 	if week == 0 {
 		week = 7
@@ -161,7 +143,7 @@ func GetWeek(t time.Time) int {
 }
 
 //Get the month of the year
-func GetMonth(t time.Time) int {
+func MonthOf(t time.Time) int {
 	return int(t.Month())
 }
 
@@ -177,7 +159,7 @@ func IsLeapYear(t time.Time) bool {
 //Time zone conversion
 //@param location "","UTC","America/New_York"
 //@param timeStrEx	"2006-01-02 15:04:05"
-func ParseWithLocation(location, timeStr string) (time.Time, error) {
+func StrToTimeOfLocation(location, timeStr string) (time.Time, error) {
 	//Load time zone
 	l, err := time.LoadLocation(location)
 	if err != nil {
@@ -195,12 +177,12 @@ func ParseWithLocation(location, timeStr string) (time.Time, error) {
 }
 
 //Convert to full time
-func DateTimeToString(t time.Time) string {
+func TimeToStr(t time.Time) string {
 	return t.Format("2006-01-02 15:04:05")
 }
 
 //Convert to date
-func DateToString(t time.Time) string {
+func TimeToDateStr(t time.Time) string {
 	return t.Format("2006-01-02")
 }
 
@@ -213,6 +195,7 @@ func TimeFormat(t time.Time, format string) string {
 //format to layout
 func formatToLayout(format string) string {
 	format = strings.TrimSpace(format)
+	format = strings.Replace(format, "yyyy", "Y", 1)
 	format = stringDedup(format) //String deduplication
 	layout := strings.Replace(format, "Y", "2006", 1)
 	layout = strings.Replace(layout, "y", "06", 1)

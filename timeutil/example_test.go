@@ -14,47 +14,42 @@ import (
 )
 
 //Get the current time in seconds
-func ExampleGetNowSecond() {
-	second := GetNowSecond()
+func ExampleUnix() {
+	second := Unix()
 	fmt.Println(second)
-
-	//Output:
-	//1599546208
+	//Output like : 1607702400
 }
 
 //Get seconds based on time
-func ExampleGetSecondByTime() {
-	secondByTime := GetSecondByTime(time.Now())
+func ExampleTimeToUnix() {
+	secondByTime := TimeToUnix(time.Now())
 	fmt.Println(secondByTime)
 
-	//Output:
-	//1599546208
+	//Output like : 1607702400
 }
 
 //Get the current time in milliseconds
-func ExampleGetNowMilliSecond() {
-	nowMilliSecond := GetNowMilliSecond()
+func ExampleMilliSeconds() {
+	nowMilliSecond := MilliSeconds()
 	fmt.Println(nowMilliSecond)
 
-	//Output:
-	//1600320027565
+	//Output like : 1600320027565
 }
 
 //Get the millisecond value based on time
-func ExampleGetMilliSecondByTime() {
-	milliSecondByTime := GetMilliSecondByTime(time.Now())
+func ExampleTimeToMilliSeconds() {
+	milliSecondByTime := TimeToMilliSeconds(time.Now())
 	fmt.Println(milliSecondByTime)
 
-	//Output:
-	//1600320027565
+	//Output like : 1600320027565
 }
 
 //Change integer type to time type
-func ExampleGetTimeByInt64() {
-	timeByInt := GetTimeByInt64(1600320027565) //milliSecond
+func ExampleInt64ToTime() {
+	timeByInt := Int64ToTime(1600320027565) //milliSecond
 	fmt.Println(timeByInt)
 
-	timeByInt = GetTimeByInt64(1599546208) //second
+	timeByInt = Int64ToTime(1599546208) //second
 	fmt.Println(timeByInt)
 
 	//Output:
@@ -66,24 +61,30 @@ func ExampleGetTimeByInt64() {
 //@param s timString "2006-01-02","2006/01/02 15:04:05","2006/01/02 03:04:05"
 //@param isH true-24 hour clock false-12 hour clock
 //No hours involved. The second field is ignored
-func ExampleGetTimeByString() {
+func ExampleStrToTime() {
 	//No hours involved. The second field is ignored
-	timeByString := GetTimeByString("2020-09-17", false)
+
+	//true 2020-09-17 13:29:05
+	timeByString := TimeFormat(MustStrToTime("2020-09-17"), "Y-m-d H:i:s")
 	fmt.Println(timeByString)
 
 	//true 2020-09-17 13:29:05
+	timeByString = TimeFormat(MustStrToTime("2020-09-17 01:29:05pm"), "Y-m-d H:i:s")
+	fmt.Println(timeByString)
+
 	//false 2020-09-17 01:29:05
-	timeByString = GetTimeByString("2020-09-17 13:29:05", true)
+	timeByString = TimeFormat(MustStrToTime("2020-09-17 13:29:05"), "Y-m-d h:i:s")
 	fmt.Println(timeByString)
 
 	//Output:
-	//true 2020-09-17 13:29:05
-	//false 2020-09-17 01:29:05
+	//2020-09-17 00:00:00
+	//2020-09-17 13:29:05
+	//2020-09-17 01:29:05
 }
 
 //Get the zero point of incoming time
-func ExampleGetZeroTime() {
-	zeroTime := GetZeroTime(time.Now())
+func ExampleZeroTimeOf() {
+	zeroTime := ZeroTimeOf(MustStrToTime("2020-09-17 00:00:00 +0800 CST"))
 	fmt.Println(zeroTime)
 
 	//Output:
@@ -91,18 +92,17 @@ func ExampleGetZeroTime() {
 }
 
 //Get the zero time of the day
-func ExampleGetNowZeroTime() {
-	nowZeroTime := GetNowZeroTime()
+func ExampleZeroTime() {
+	nowZeroTime := ZeroTime()
 	fmt.Println(nowZeroTime)
 
-	//Output:
-	//2020-09-17 00:00:00 +0800 CST
+	//Output like : 2020-09-17 00:00:00 +0800 CST
 }
 
 //Get the first day of the month where the time is passed in.
 // That is the zero point on the first day of a month
-func ExampleGetFirstDateOfMonth() {
-	firstDate := GetFirstDateOfMonth(time.Now())
+func ExampleMonthZeroTimeOf() {
+	firstDate := MonthZeroTimeOf(time.Now())
 	fmt.Println(firstDate)
 
 	//Output:
@@ -111,8 +111,8 @@ func ExampleGetFirstDateOfMonth() {
 
 //Get the last day of the month where the time is passed in
 //That is, 0 o'clock on the last day of a month
-func ExampleGetLastDateOfMonth() {
-	lastDate := GetLastDateOfMonth(time.Now())
+func ExampleMonthLastTimeOf() {
+	lastDate := MonthLastTimeOf(time.Now())
 	fmt.Println(lastDate)
 
 	//Output:
@@ -120,8 +120,8 @@ func ExampleGetLastDateOfMonth() {
 }
 
 //Start of this year
-func ExampleGetFirstDateOfYear() {
-	firstData := GetFirstDateOfYear(time.Now())
+func ExampleYearZeroTimeOf() {
+	firstData := YearZeroTimeOf(time.Now())
 	fmt.Println(firstData)
 
 	//Output:
@@ -129,8 +129,8 @@ func ExampleGetFirstDateOfYear() {
 }
 
 //End of this year
-func ExampleGetLastDateOfYear() {
-	lastDate := GetLastDateOfYear(time.Now())
+func ExampleYearLastTimeOf() {
+	lastDate := YearLastTimeOf(time.Now())
 	fmt.Println(lastDate)
 
 	//Output:
@@ -138,40 +138,41 @@ func ExampleGetLastDateOfYear() {
 }
 
 //Get the day of the week for the incoming time
-func ExampleGetWeek() {
-	week := GetWeek(time.Now())
+func ExampleWeekdayOf() {
+	week := WeekdayOf(MustStrToTime("2020-9-18 00:00:00"))
 	fmt.Println(week)
 
 	//Output:
-	//2020-9-17 | Thursday | 4
+	//5
 }
 
 //Get the month of the year
-func ExampleGetMonth() {
-	month := GetMonth(time.Now())
+func ExampleMonthOf() {
+	month := MonthOf(MustStrToTime("2020-9-18 00:00:00"))
 	fmt.Println(month)
 
 	//Output:
-	//2020-9-17 | 9
+	//9
 }
 
 //Is it a leap year
 func ExampleIsLeapYear() {
-	flag := IsLeapYear(GetTimeByString("2020/09/16", false)) //ture
+	flag := IsLeapYear(MustStrToTime("2020/09/16")) //ture
 	fmt.Println(flag)
 
-	flag = IsLeapYear(GetTimeByString("2007/09/16", false)) //false
+	flag = IsLeapYear(MustStrToTime("2007/09/16")) //false
 	fmt.Println(flag)
 
 	//Output:
-	//2020/9/16 true | 2007/9/16 false
+	//true
+	//false
 }
 
 //Time zone conversion
 //@param location "","UTC","America/New_York"
 //@param timeStrEx	"2006-01-02 15:04:05"
-func ExampleParseWithLocation() {
-	t, err := ParseWithLocation("America/New_York", "2020-09-17 13:44:05")
+func ExampleStrToTimeOfLocation() {
+	t, err := StrToTimeOfLocation("America/New_York", "2020-09-17 13:44:05")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -183,47 +184,50 @@ func ExampleParseWithLocation() {
 }
 
 //Convert to full time
-func ExampleDateTimeToString() {
-	s := DateTimeToString(time.Now())
+func ExampleTimeToStr() {
+	s := TimeToStr(MustStrToTime("2007/09/16"))
 	fmt.Println(s)
 
 	//Output:
-	//2020-09-17 13:47:07
+	//2007-09-16 00:00:00
 }
 
 //Convert to date
-func ExampleDateToString() {
-	s := DateToString(time.Now())
+func ExampleTimeToDateStr() {
+	s := TimeToDateStr(MustStrToTime("2007/09/16"))
 	fmt.Println(s)
 
 	//Output:
-	//2020-09-17
+	//2007-09-16
 }
 
 func ExampleTimeFormat() {
-	s := TimeFormat(time.Now(), "h:i:s")
+	now := MustStrToTime("2020/09/17 01:50:04")
+	s := TimeFormat(now, "h:i:s")
 	fmt.Println(s)
 
-	s = TimeFormat(time.Now(), "Y/m/d")
+	s = TimeFormat(now, "Y/m/d")
 	fmt.Println(s)
 
-	s = TimeFormat(time.Now(), "Y-m-d h:i:s")
+	s = TimeFormat(now, "Y-m-d h:i:s")
 	fmt.Println(s)
 
-	s = TimeFormat(time.Now(), "yyyy-mm-dd hh:ii:ss")
+	s = TimeFormat(now, "yyyy-mm-dd hh:ii:ss")
 	fmt.Println(s)
+
+	/*
+		Y-2006	y-06
+		m-01 	n-1
+		d-02 	j-2
+		H-15	h-03	g-3
+		i-04
+		s-05
+	*/
 
 	//Output:
-	//"h:i:s" 01:50:04
-	//"Y/m/d" 2020/09/17
-	//"Y-m-d h:i:s" 2020-09-17 01:50:04
-	//"yyyy-mm-dd hh:ii:ss"  20-09-17 01:50:04
-	/** 2006-01-02 03:04:05 |  2006-01-02 15:04:05
-	Y-2006	y-06
-	m-01 	n-1
-	d-02 	j-2
-	H-15	h-03	g-3
-	i-04
-	s-05
-	*/
+	//01:50:04
+	//2020/09/17
+	//2020-09-17 01:50:04
+	//2020-09-17 01:50:04
+
 }
